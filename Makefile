@@ -1,0 +1,6 @@
+
+build:
+	@go build -o bin/ads ./cmd/...
+
+build-windows:
+	@GOOS=windows GOARCH=amd64 go build -o bin/ads-win-amd64.exe ./cmd/...
