@@ -14,6 +14,7 @@ const (
 	PTPageUrl
 	PTVideo
 	PTImage
+	PTText
 )
 
 type Asset struct {
@@ -23,6 +24,7 @@ type Asset struct {
 	Name        string
 	PageType    PageType
 	SubType     string
+	Content     string
 	Url         string
 	Signature   string
 }
