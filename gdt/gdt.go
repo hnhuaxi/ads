@@ -284,6 +284,7 @@ V3:
 			videosIds  = make(ads.Set[string])
 			imagesIds  = make(ads.Set[string])
 			pagesIds   = make(ads.Set[string])
+			texts      = make(ads.Set[string])
 			// videosIds
 			needImages   bool
 			needXJPages  bool
@@ -303,6 +304,8 @@ V3:
 			video := adcr.Get("creative_components.video")                  // 视频
 			image := adcr.Get("creative_components.image")                  // 图片
 			wechatChannel := adcr.Get("creative_components.wechat_channel") // 微信视频号
+			description := adcr.Get("creative_components.description")      // 描述
+			floating_zone := adcr.Get("creative_components.floating_zone")  // 浮层
 
 			if !jumpInfo.IsNil() {
 				jumpInfo.EachObjxMap(func(i int, m objx.Map) bool {
@@ -368,6 +371,39 @@ V3:
 				})
 			}
 
+			if !description.IsNil() {
+				description.EachObjxMap(func(i int, m objx.Map) bool {
+					text := m.Get("value.content").String()
+					log.Debugf("text: %s", text)
+					texts.Add(text)
+					return true
+				})
+			}
+
+			if !floating_zone.IsNil() {
+				floating_zone.EachObjxMap(func(i int, m objx.Map) bool {
+					buttonText := m.Get("value.floating_zone_button_text").String()
+					log.Debugf("button_text: %s", buttonText)
+					texts.Add(buttonText)
+					// floating_zone_desc
+					floatingZoneDesc := m.Get("value.floating_zone_desc").String()
+					log.Debugf("floating_zone_desc: %s", floatingZoneDesc)
+					texts.Add(floatingZoneDesc)
+					// floating_zone_name
+					floatingZoneName := m.Get("value.floating_zone_name").String()
+					log.Debugf("floating_zone_name: %s", floatingZoneName)
+					texts.Add(floatingZoneName)
+
+					// floating_zone_image_id
+					floatingZoneImageId := m.Get("value.floating_zone_image_id").String()
+					log.Debugf("floating_zone_image_id: %s", floatingZoneImageId)
+					if floatingZoneImageId != "" {
+						imagesIds.Add(floatingZoneImageId)
+					}
+					return true
+				})
+			}
+
 			_ = wechatChannel
 
 		}
@@ -416,18 +452,20 @@ V3:
 				assets = append(assets, &ads.Asset{
 					AccountID: strconv.FormatInt(g.AccountID, 10),
 					Name:      video.Get("description").Str(),
-					AssetID:   video.Get("video_id").Str(),
+					AssetID:   itoa(video.Get("video_id").Int()),
 					PageType:  ads.PTVideo,
 					SubType:   videoType,
 					Url:       video.Get("preview_url").String(),
+					Signature: video.Get("signature").String(),
 				})
 
 				assets = append(assets, &ads.Asset{
 					AccountID: strconv.FormatInt(g.AccountID, 10),
 					Name:      video.Get("description").Str(),
-					AssetID:   video.Get("video_id").Str(),
+					AssetID:   itoa(video.Get("video_id").Int()),
 					PageType:  ads.PTImage,
 					Url:       video.Get("key_frame_image_url").String(),
+					Signature: video.Get("signature").String(),
 				})
 			}
 		}
@@ -457,6 +495,19 @@ V3:
 				})
 			}
 		}
+
+		if len(texts) > 0 {
+			g.printJson(log, "texts", texts)
+
+			for _, text := range texts.Slice() {
+				assets = append(assets, &ads.Asset{
+					AccountID: strconv.FormatInt(g.AccountID, 10),
+					Name:      text,
+					PageType:  ads.PTText,
+				})
+			}
+		}
+
 		// printJson(ads)
 		return
 	}
