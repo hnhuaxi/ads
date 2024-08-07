@@ -2,6 +2,7 @@ package gdt
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/hnhuaxi/ads"
 	v2 "github.com/hnhuaxi/ads/gdt/v2"
@@ -285,6 +286,7 @@ V3:
 			imagesIds  = make(ads.Set[string])
 			pagesIds   = make(ads.Set[string])
 			texts      = make(ads.Set[string])
+			textIds    = make(map[int64][]string)
 			// videosIds
 			needImages   bool
 			needXJPages  bool
@@ -374,8 +376,10 @@ V3:
 			if !description.IsNil() {
 				description.EachObjxMap(func(i int, m objx.Map) bool {
 					text := m.Get("value.content").String()
+					component_id := m.Get("component_id").Int64()
 					log.Debugf("text: %s", text)
 					texts.Add(text)
+					textIds[component_id] = append(textIds[component_id], text)
 					return true
 				})
 			}
@@ -383,23 +387,28 @@ V3:
 			if !floating_zone.IsNil() {
 				floating_zone.EachObjxMap(func(i int, m objx.Map) bool {
 					buttonText := m.Get("value.floating_zone_button_text").String()
+					component_id := m.Get("component_id").Int64()
+
 					log.Debugf("button_text: %s", buttonText)
 					texts.Add(buttonText)
+					textIds[component_id] = append(textIds[component_id], buttonText)
 					// floating_zone_desc
 					floatingZoneDesc := m.Get("value.floating_zone_desc").String()
 					log.Debugf("floating_zone_desc: %s", floatingZoneDesc)
 					texts.Add(floatingZoneDesc)
+					textIds[component_id] = append(textIds[component_id], floatingZoneDesc)
 					// floating_zone_name
 					floatingZoneName := m.Get("value.floating_zone_name").String()
 					log.Debugf("floating_zone_name: %s", floatingZoneName)
 					texts.Add(floatingZoneName)
-
+					textIds[component_id] = append(textIds[component_id], floatingZoneName)
 					// floating_zone_image_id
 					floatingZoneImageId := m.Get("value.floating_zone_image_id").String()
 					log.Debugf("floating_zone_image_id: %s", floatingZoneImageId)
 					if floatingZoneImageId != "" {
 						imagesIds.Add(floatingZoneImageId)
 					}
+
 					return true
 				})
 			}
@@ -499,10 +508,11 @@ V3:
 		if len(texts) > 0 {
 			g.printJson(log, "texts", texts)
 
-			for _, text := range texts.Slice() {
+			for id, text := range textIds {
 				assets = append(assets, &ads.Asset{
 					AccountID: strconv.FormatInt(g.AccountID, 10),
-					Name:      text,
+					AssetID:   itoa(int(id)),
+					Name:      strings.Join(text, ","),
 					PageType:  ads.PTText,
 				})
 			}
