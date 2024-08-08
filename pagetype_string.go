@@ -12,11 +12,12 @@ func _() {
 	_ = x[PTPageUrl-1]
 	_ = x[PTVideo-2]
 	_ = x[PTImage-3]
+	_ = x[PTText-4]
 }
 
-const _PageType_name = "PTUnknownPTPageUrlPTVideoPTImage"
+const _PageType_name = "PTUnknownPTPageUrlPTVideoPTImagePTText"
 
-var _PageType_index = [...]uint8{0, 9, 18, 25, 32}
+var _PageType_index = [...]uint8{0, 9, 18, 25, 32, 38}
 
 func (i PageType) String() string {
 	if i < 0 || i >= PageType(len(_PageType_index)-1) {
