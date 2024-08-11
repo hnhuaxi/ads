@@ -3,6 +3,7 @@ package ads
 import (
 	"fmt"
 
+	"github.com/akrennmair/slice"
 	"github.com/hysios/x/providers"
 )
 
@@ -42,6 +43,25 @@ const (
 type SubAsset struct {
 	Type SubAssetType
 	Url  string
+}
+
+// PrimaryUrl returns the primary url of the asset
+func (a *Asset) PrimaryUrl() string {
+	if len(a.SubAssets) == 0 {
+		return ""
+	}
+
+	if a.PageType == PTVideo {
+		subass := slice.Filter(a.SubAssets, func(a *SubAsset) bool {
+			return a.Type == SATVideo
+		})
+		if len(subass) > 0 {
+			return subass[0].Url
+		}
+		return ""
+	} else {
+		return a.SubAssets[0].Url
+	}
 }
 
 type AdcreativeMatchFunc func(adcreative Map) (process bool)
