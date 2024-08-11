@@ -24,9 +24,24 @@ type Asset struct {
 	Name        string
 	PageType    PageType
 	SubType     string
-	Content     string
-	Url         string
+	Texts       []string
+	SubAssets   []*SubAsset
 	Signature   string
+	Version     string
+}
+
+type SubAssetType int
+
+const (
+	SATUnknown SubAssetType = iota
+	SATImage
+	SATVideo
+	SATPageUrl
+)
+
+type SubAsset struct {
+	Type SubAssetType
+	Url  string
 }
 
 type AdcreativeMatchFunc func(adcreative Map) (process bool)
