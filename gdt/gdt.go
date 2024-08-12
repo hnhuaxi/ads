@@ -94,7 +94,7 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 				assets = append(assets, &ads.Asset{
 					AccountID: strconv.FormatInt(g.AccountID, 10),
 					Name:      adcr.Get("adcreative_name").Str(),
-					AssetID:   adcr.Get("adcreative_id").Str(),
+					AssetID:   itoa(int(adcr.Get("adcreative_id").Float64())),
 					PageType:  ads.PTPageUrl,
 					SubType:   pageType,
 					SubAssets: []*ads.SubAsset{
@@ -205,7 +205,7 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 					assets = append(assets, &ads.Asset{
 						AccountID: strconv.FormatInt(g.AccountID, 10),
 						Name:      page.Get("page_name").Str(),
-						AssetID:   page.Get("page_id").Str(),
+						AssetID:   itoa(int(page.Get("page_id").Float64())),
 						PageType:  ads.PTPageUrl,
 						SubType:   pageType,
 						SubAssets: []*ads.SubAsset{
