@@ -364,8 +364,8 @@ V3:
 							pageIndexs[pageSpec.ObjxMap().Get("h5_spec.page_url").String()] = true
 							assets = append(assets, &ads.Asset{
 								AccountID: strconv.FormatInt(g.AccountID, 10),
-								Name:      adcr.Get("adcreative_name").Str(),
-								AssetID:   adcr.Get("adcreative_id").Str(),
+								Name:      adcr.Get("dynamic_creative_name").Str(),
+								AssetID:   itoa(int(adcr.Get("dynamic_creative_id").Float64())),
 								PageType:  ads.PTPageUrl,
 								SubType:   pageType,
 								SubAssets: []*ads.SubAsset{
@@ -496,7 +496,7 @@ V3:
 					assets = append(assets, &ads.Asset{
 						AccountID: strconv.FormatInt(g.AccountID, 10),
 						Name:      page.Get("page_name").Str(),
-						AssetID:   page.Get("page_id").Str(),
+						AssetID:   itoa(int(page.Get("page_id").Float64())),
 						PageType:  ads.PTPageUrl,
 						SubType:   pageType,
 						SubAssets: []*ads.SubAsset{

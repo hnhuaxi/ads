@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -136,8 +137,13 @@ func writeTo(w *csv.Writer, assets []*ads.Asset) error {
 	for _, asset := range assets {
 		s := structs.New(asset)
 		rows := make([]string, 0, len(s.Values()))
-		for _, value := range s.Values() {
-			rows = append(rows, fmt.Sprint(value))
+		for i, value := range s.Values() {
+			if i == 7 {
+				j, _ := json.Marshal(value)
+				rows = append(rows, string(j))
+			} else {
+				rows = append(rows, fmt.Sprint(value))
+			}
 		}
 
 		w.Write(rows)
