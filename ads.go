@@ -19,16 +19,18 @@ const (
 )
 
 type Asset struct {
-	AccountID   string
-	AccountName string
-	AssetID     string
-	Name        string
-	PageType    PageType
-	SubType     string
-	Texts       []string
-	SubAssets   []*SubAsset
-	Signature   string
-	Version     string
+	AccountID      string
+	AccountName    string
+	AdcreativeID   string
+	AdcreativeName string
+	AssetID        string
+	Name           string
+	PageType       PageType
+	SubType        string
+	Texts          []string
+	SubAssets      []*SubAsset
+	Signature      string
+	Version        string
 }
 
 type SubAssetType int

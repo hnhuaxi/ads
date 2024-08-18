@@ -50,6 +50,11 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 		return nil, err
 	}
 
+	type adType struct {
+		AdcreativeID   int64
+		AdcreativeName string
+	}
+
 	if total == 0 {
 		goto V3
 	}
@@ -62,6 +67,9 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 			needPages  bool
 			pageTypes  = make(ads.Set[string])
 			pageIds    = make(ads.Set[string])
+			adsPages   = make(map[string]*adType)
+			adsImages  = make(map[string]*adType)
+			adsVideos  = make(map[string]*adType)
 			videoIds   = make(ads.Set[string])
 			imageIds   = make(ads.Set[string])
 			brandIds   = make(ads.Set[string])
@@ -92,11 +100,13 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 				pageIdexs[pageSpec.Get("page_url").String()] = true
 
 				assets = append(assets, &ads.Asset{
-					AccountID: strconv.FormatInt(g.AccountID, 10),
-					Name:      adcr.Get("adcreative_name").Str(),
-					AssetID:   itoa(int(adcr.Get("adcreative_id").Float64())),
-					PageType:  ads.PTPageUrl,
-					SubType:   pageType,
+					AccountID:      strconv.FormatInt(g.AccountID, 10),
+					Name:           adcr.Get("adcreative_name").Str(),
+					AdcreativeID:   itoa(int(adcr.Get("adcreative_id").Float64())),
+					AdcreativeName: adcr.Get("adcreative_name").Str(),
+					AssetID:        itoa(int(adcr.Get("adcreative_id").Float64())),
+					PageType:       ads.PTPageUrl,
+					SubType:        pageType,
 					SubAssets: []*ads.SubAsset{
 						{
 							Type: ads.SATPageUrl,
@@ -110,6 +120,10 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 				pageTypes.Add("DEFAULT_PAGES")
 				needPages = true
 				pageIds.Add(itoa(pageSpec.Get("page_id").Int()))
+				adsPages[itoa(pageSpec.Get("page_id").Int())] = &adType{
+					AdcreativeID:   int64(adcr.Get("adcreative_id").Float64()),
+					AdcreativeName: adcr.Get("adcreative_name").Str(),
+				}
 			} else {
 				pageTypes.Add("DEFAULT_PAGES")
 				needPages = true
@@ -130,6 +144,11 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 					adcreativeElements.Get("image_component_options").EachObjxMap(func(i int, m objx.Map) bool {
 						imageId := m.Get("value.image_id").String()
 						imageIds.Add(imageId)
+						adsImages[imageId] = &adType{
+							AdcreativeID:   int64(adcr.Get("adcreative_id").Float64()),
+							AdcreativeName: adcr.Get("adcreative_name").Str(),
+						}
+
 						needImages = true
 						return true
 					})
@@ -139,6 +158,10 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 					adcreativeElements.Get("image3_component_options").EachObjxMap(func(i int, m objx.Map) bool {
 						imageId := m.Get("value.image_id").String()
 						imageIds.Add(imageId)
+						adsImages[imageId] = &adType{
+							AdcreativeID:   int64(adcr.Get("adcreative_id").Float64()),
+							AdcreativeName: adcr.Get("adcreative_name").Str(),
+						}
 						needImages = true
 						return true
 					})
@@ -162,6 +185,10 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 						// 	videoIds.Add(videoId)
 						// }
 						videoIds.Add(videoId)
+						adsVideos[videoId] = &adType{
+							AdcreativeID:   int64(adcr.Get("adcreative_id").Float64()),
+							AdcreativeName: adcr.Get("adcreative_name").Str(),
+						}
 						if coverImgId != "" {
 							imageIds.Add(coverImgId)
 							needImages = true
@@ -202,12 +229,19 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 
 				switch pageType {
 				case "PAGE_TYPE_DEFAULT":
+					adc, ok := adsPages[itoa(int(page.Get("page_id").Float64()))]
+					if !ok {
+						adc = &adType{}
+					}
+
 					assets = append(assets, &ads.Asset{
-						AccountID: strconv.FormatInt(g.AccountID, 10),
-						Name:      page.Get("page_name").Str(),
-						AssetID:   itoa(int(page.Get("page_id").Float64())),
-						PageType:  ads.PTPageUrl,
-						SubType:   pageType,
+						AccountID:      strconv.FormatInt(g.AccountID, 10),
+						Name:           page.Get("page_name").Str(),
+						AssetID:        itoa(int(page.Get("page_id").Float64())),
+						AdcreativeID:   itoa(int(adc.AdcreativeID)),
+						AdcreativeName: adc.AdcreativeName,
+						PageType:       ads.PTPageUrl,
+						SubType:        pageType,
 						SubAssets: []*ads.SubAsset{
 							{
 								Type: ads.SATPageUrl,
@@ -242,11 +276,18 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 			g.printJson(log, "images", images)
 
 			for _, image := range images {
+				adc, ok := adsPages[image.Get("image_id").Str()]
+				if !ok {
+					adc = &adType{}
+				}
+
 				assets = append(assets, &ads.Asset{
-					AccountID: strconv.FormatInt(g.AccountID, 10),
-					Name:      image.Get("image_name").Str(),
-					AssetID:   image.Get("image_id").Str(),
-					PageType:  ads.PTImage,
+					AccountID:      strconv.FormatInt(g.AccountID, 10),
+					Name:           image.Get("image_name").Str(),
+					AssetID:        image.Get("image_id").Str(),
+					AdcreativeID:   itoa(int(adc.AdcreativeID)),
+					AdcreativeName: adc.AdcreativeName,
+					PageType:       ads.PTImage,
 					// Url:       image.Get("preview_url").String(),
 					Signature: image.Get("signature").String(),
 					SubAssets: []*ads.SubAsset{
@@ -277,13 +318,19 @@ func (g *GdtAdcreatives) Assets() (assets []*ads.Asset, err error) {
 
 			for _, video := range videos {
 				videoType := video.Get("type").String()
+				adc, ok := adsVideos[video.Get("video_id").Str()]
+				if !ok {
+					adc = &adType{}
+				}
 
 				asset := &ads.Asset{
-					AccountID: strconv.FormatInt(g.AccountID, 10),
-					Name:      video.Get("video_name").Str(),
-					AssetID:   video.Get("video_id").Str(),
-					PageType:  ads.PTVideo,
-					SubType:   videoType,
+					AccountID:      strconv.FormatInt(g.AccountID, 10),
+					Name:           video.Get("video_name").Str(),
+					AssetID:        video.Get("video_id").Str(),
+					AdcreativeID:   itoa(int(adc.AdcreativeID)),
+					AdcreativeName: adc.AdcreativeName,
+					PageType:       ads.PTVideo,
+					SubType:        videoType,
 					// Url:       video.Get("preview_url").String(),
 					Signature: video.Get("signature").String(),
 					Version:   "v2",
@@ -322,6 +369,10 @@ V3:
 			imagesIds  = make(ads.Set[string])
 			pagesIds   = make(ads.Set[string])
 			texts      = make(ads.Set[string])
+			adsPages   = make(map[string]*adType)
+			adsImages  = make(map[string]*adType)
+			adsVideos  = make(map[string]*adType)
+			adsTexts   = make(map[string]*adType)
 			textIds    = make(map[int64][]string)
 			// videosIds
 			needImages   bool
@@ -363,11 +414,13 @@ V3:
 							}
 							pageIndexs[pageSpec.ObjxMap().Get("h5_spec.page_url").String()] = true
 							assets = append(assets, &ads.Asset{
-								AccountID: strconv.FormatInt(g.AccountID, 10),
-								Name:      adcr.Get("dynamic_creative_name").Str(),
-								AssetID:   itoa(int(adcr.Get("dynamic_creative_id").Float64())),
-								PageType:  ads.PTPageUrl,
-								SubType:   pageType,
+								AccountID:      strconv.FormatInt(g.AccountID, 10),
+								Name:           adcr.Get("dynamic_creative_name").Str(),
+								AssetID:        itoa(int(adcr.Get("dynamic_creative_id").Float64())),
+								AdcreativeID:   itoa(int(adcr.Get("dynamic_creative_id").Float64())),
+								AdcreativeName: adcr.Get("dynamic_creative_name").Str(),
+								PageType:       ads.PTPageUrl,
+								SubType:        pageType,
 								SubAssets: []*ads.SubAsset{
 									{
 										Type: ads.SATPageUrl,
@@ -407,6 +460,10 @@ V3:
 					videoId := m.Get("value.video_id").String()
 					log.Debugf("video_id: %s", videoId)
 					needVideos = true
+					adsVideos[videoId] = &adType{
+						AdcreativeID:   int64(adcr.Get("dynamic_creative_id").Float64()),
+						AdcreativeName: adcr.Get("dynamic_creative_name").Str(),
+					}
 					videosIds.Add(videoId)
 					return true
 				})
@@ -417,6 +474,10 @@ V3:
 					imageId := m.Get("value.image_id").String()
 					log.Debugf("image_id: %s", imageId)
 					needImages = true
+					adsImages[imageId] = &adType{
+						AdcreativeID:   int64(adcr.Get("dynamic_creative_id").Float64()),
+						AdcreativeName: adcr.Get("dynamic_creative_name").Str(),
+					}
 					imagesIds.Add(imageId)
 					return true
 				})
@@ -430,6 +491,10 @@ V3:
 					if !slices.Contains(textIds[component_id], text) {
 						textIds[component_id] = append(textIds[component_id], text)
 						texts.Add(text)
+						adsTexts[itoa(int(component_id))] = &adType{
+							AdcreativeID:   int64(adcr.Get("dynamic_creative_id").Float64()),
+							AdcreativeName: adcr.Get("dynamic_creative_name").Str(),
+						}
 					}
 					return true
 				})
@@ -442,6 +507,10 @@ V3:
 					log.Debugf("button_text: %s", buttonText)
 					if !slices.Contains(textIds[component_id], buttonText) {
 						textIds[component_id] = append(textIds[component_id], buttonText)
+						adsTexts[itoa(int(component_id))] = &adType{
+							AdcreativeID:   int64(adcr.Get("dynamic_creative_id").Float64()),
+							AdcreativeName: adcr.Get("dynamic_creative_name").Str(),
+						}
 						texts.Add(buttonText)
 					}
 					// textIds[component_id] = append(textIds[component_id], buttonText)
@@ -453,6 +522,10 @@ V3:
 					if !slices.Contains(textIds[component_id], floatingZoneDesc) {
 						textIds[component_id] = append(textIds[component_id], floatingZoneDesc)
 						texts.Add(floatingZoneDesc)
+						adsTexts[itoa(int(component_id))] = &adType{
+							AdcreativeID:   int64(adcr.Get("dynamic_creative_id").Float64()),
+							AdcreativeName: adcr.Get("dynamic_creative_name").Str(),
+						}
 					}
 					// floating_zone_name
 					floatingZoneName := m.Get("value.floating_zone_name").String()
@@ -460,6 +533,10 @@ V3:
 
 					if !slices.Contains(textIds[component_id], floatingZoneName) {
 						texts.Add(floatingZoneName)
+						adsTexts[itoa(int(component_id))] = &adType{
+							AdcreativeID:   int64(adcr.Get("dynamic_creative_id").Float64()),
+							AdcreativeName: adcr.Get("dynamic_creative_name").Str(),
+						}
 						textIds[component_id] = append(textIds[component_id], floatingZoneName)
 					}
 					// floating_zone_image_id
@@ -492,13 +569,19 @@ V3:
 						continue
 					}
 					pageIdxes[page.Get("preview_url").String()] = true
+					adv, ok := adsPages[itoa(int(page.Get("page_id").Float64()))]
+					if !ok {
+						adv = &adType{}
+					}
 
 					assets = append(assets, &ads.Asset{
-						AccountID: strconv.FormatInt(g.AccountID, 10),
-						Name:      page.Get("page_name").Str(),
-						AssetID:   itoa(int(page.Get("page_id").Float64())),
-						PageType:  ads.PTPageUrl,
-						SubType:   pageType,
+						AccountID:      strconv.FormatInt(g.AccountID, 10),
+						Name:           page.Get("page_name").Str(),
+						AssetID:        itoa(int(page.Get("page_id").Float64())),
+						AdcreativeID:   itoa(int(adv.AdcreativeID)),
+						AdcreativeName: adv.AdcreativeName,
+						PageType:       ads.PTPageUrl,
+						SubType:        pageType,
 						SubAssets: []*ads.SubAsset{
 							{
 								Type: ads.SATPageUrl,
@@ -529,12 +612,18 @@ V3:
 			g.printJson(log, "videos", videos)
 			for _, video := range videos {
 				videoType := video.Get("type").String()
+				adc, ok := adsVideos[video.Get("video_id").Str()]
+				if !ok {
+					adc = &adType{}
+				}
 				asset := &ads.Asset{
-					AccountID: strconv.FormatInt(g.AccountID, 10),
-					Name:      video.Get("description").Str(),
-					AssetID:   itoa(video.Get("video_id").Int()),
-					PageType:  ads.PTVideo,
-					SubType:   videoType,
+					AccountID:      strconv.FormatInt(g.AccountID, 10),
+					Name:           video.Get("description").Str(),
+					AssetID:        itoa(video.Get("video_id").Int()),
+					AdcreativeID:   itoa(int(adc.AdcreativeID)),
+					AdcreativeName: adc.AdcreativeName,
+					PageType:       ads.PTVideo,
+					SubType:        videoType,
 					// Url:       video.Get("preview_url").String(),
 					Signature: video.Get("signature").String(),
 					Version:   "v3",
@@ -570,13 +659,19 @@ V3:
 
 			g.printJson(log, "images", images)
 			for _, image := range images {
+				adc, ok := adsImages[image.Get("image_id").Str()]
+				if !ok {
+					adc = &adType{}
+				}
 				assets = append(assets, &ads.Asset{
-					AccountID: strconv.FormatInt(g.AccountID, 10),
-					Name:      image.Get("description").Str(),
-					AssetID:   image.Get("image_id").Str(),
-					PageType:  ads.PTImage,
-					SubType:   image.Get("type").String(),
-					Signature: image.Get("signature").String(),
+					AccountID:      strconv.FormatInt(g.AccountID, 10),
+					Name:           image.Get("description").Str(),
+					AssetID:        image.Get("image_id").Str(),
+					AdcreativeID:   itoa(int(adc.AdcreativeID)),
+					AdcreativeName: adc.AdcreativeName,
+					PageType:       ads.PTImage,
+					SubType:        image.Get("type").String(),
+					Signature:      image.Get("signature").String(),
 					// Url:       image.Get("preview_url").String(),
 					SubAssets: []*ads.SubAsset{
 						{
@@ -592,12 +687,18 @@ V3:
 			g.printJson(log, "textIds", textIds)
 
 			for id, text := range textIds {
+				adc, ok := adsTexts[itoa(int(id))]
+				if !ok {
+					adc = &adType{}
+				}
 				assets = append(assets, &ads.Asset{
-					AccountID: strconv.FormatInt(g.AccountID, 10),
-					AssetID:   itoa(int(id)),
-					Texts:     text,
-					PageType:  ads.PTText,
-					Version:   "v3",
+					AccountID:      strconv.FormatInt(g.AccountID, 10),
+					AssetID:        itoa(int(id)),
+					AdcreativeID:   itoa(int(adc.AdcreativeID)),
+					AdcreativeName: adc.AdcreativeName,
+					Texts:          text,
+					PageType:       ads.PTText,
+					Version:        "v3",
 				})
 			}
 		}
