@@ -10,7 +10,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/hysios/x v0.0.9
 	github.com/stretchr/objx v0.5.2
-	github.com/tencentad/marketing-api-go-sdk v1.7.55
+	github.com/tencentad/marketing-api-go-sdk v1.7.62
 	go.uber.org/zap v1.25.0
 )
 

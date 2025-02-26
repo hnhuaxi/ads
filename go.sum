@@ -28,6 +28,8 @@ github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcU
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/tencentad/marketing-api-go-sdk v1.7.55 h1:HdIqOTV5/ZTL1kswZPh5/ORjTOXT9z/A6qvYHuN7IFw=
 github.com/tencentad/marketing-api-go-sdk v1.7.55/go.mod h1:DMWvwzHv/noUtVL6szGXO6O/3OPSMzrkOPyHDgbgg3w=
+github.com/tencentad/marketing-api-go-sdk v1.7.62 h1:MxM4hRCU0dr0Bhr66yr5PlB/5COZ0m6o0lhNHKmbV68=
+github.com/tencentad/marketing-api-go-sdk v1.7.62/go.mod h1:DMWvwzHv/noUtVL6szGXO6O/3OPSMzrkOPyHDgbgg3w=
 go.uber.org/goleak v1.2.0 h1:xqgm/S+aQvhWFTtR0XK3Jvg7z8kGV8P4X14IzwN3Eqk=
 go.uber.org/goleak v1.2.0/go.mod h1:XJYK+MuIchqpmGmUSAzotztawfKvYLUIgg7guXrwVUo=
 go.uber.org/multierr v1.10.0 h1:S0h4aNzvfcFsC3dRF1jLoaov7oRaKqRGC/pUEJ2yvPQ=

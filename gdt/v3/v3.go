@@ -317,14 +317,18 @@ var VideoFields = []string{
 
 // Videos
 func (g *GdtV3API) Videos(page, pageSize int, ids ...string) (objs []ads.Map, total int64, err error) {
-	var ctx = context.TODO()
+	var (
+		ctx  = context.TODO()
+		opts = &apiv3.VideosGetOpts{
+			AccountId: optional.NewInt64(g.AccountID),
+			Page:      optional.NewInt64(int64(page)),
+			PageSize:  optional.NewInt64(int64(pageSize)),
+			Fields:    optional.NewInterface(VideoFields),
+			Filtering: filterIds("media_id", ids),
+		}
+	)
 
-	resp, _, err := g.SDKClient.Videos().Get(ctx, g.AccountID, &apiv3.VideosGetOpts{
-		Page:      optional.NewInt64(int64(page)),
-		PageSize:  optional.NewInt64(int64(pageSize)),
-		Fields:    optional.NewInterface(VideoFields),
-		Filtering: filterIds("media_id", ids),
-	})
+	resp, _, err := g.SDKClient.Videos().Get(ctx, opts)
 
 	if err != nil {
 		return nil, 0, err
@@ -397,14 +401,17 @@ var ImageFields = []string{
 
 // Images
 func (g *GdtV3API) Images(page, pageSize int, ids ...string) (objs []ads.Map, total int64, err error) {
-	var ctx = context.TODO()
+	var (
+		ctx  = context.TODO()
+		opts = &apiv3.ImagesGetOpts{
+			AccountId: optional.NewInt64(g.AccountID),
+			Page:      optional.NewInt64(int64(page)),
+			PageSize:  optional.NewInt64(int64(pageSize)),
+			Fields:    optional.NewInterface(ImageFields),
+		}
+	)
 
-	resp, _, err := g.SDKClient.Images().Get(ctx, g.AccountID, &apiv3.ImagesGetOpts{
-		Page:      optional.NewInt64(int64(page)),
-		PageSize:  optional.NewInt64(int64(pageSize)),
-		Filtering: filterIds("image_id", ids),
-		Fields:    optional.NewInterface(ImageFields),
-	})
+	resp, _, err := g.SDKClient.Images().Get(ctx, opts)
 
 	if err != nil {
 		return nil, 0, err
